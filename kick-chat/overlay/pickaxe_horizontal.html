@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pickaxe Progress Horizontal</title>
+    <style>
+        body {
+            background-color: transparent;
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column; /* Keep overall vertical layout (widget above, text below) */
+            align-items: center;
+            justify-content: center; /* Center content vertically */
+            height: 100vh;
+        }
+
+        /* New: container for horizontal elements */
+        #widget-container {
+            display: flex;
+            flex-direction: row; /* Align elements in one row */
+            align-items: center; /* Vertically center elements */
+            width: 95%; /* Use almost full width */
+            margin-bottom: 10px; /* Space between bar and text */
+        }
+
+        #pickaxe {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            margin-right: 10px; /* Space between pickaxe and bar */
+        }
+
+        /* Updated: horizontal progress bar */
+        #bar-container {
+            position: relative;
+            height: 32px; /* Fixed height */
+            flex-grow: 1; /* Stretch bar to fill available space */
+            background-color: #3a3a3a;
+            border: 2px solid #555;
+            display: flex;
+            flex-direction: row; /* Fill from left to right */
+            overflow: hidden;
+        }
+
+        /* Updated: fill grows in width */
+        #bar-fill {
+            background-color: #4caf50;
+            height: 100%; /* Use full container height */
+            transition: width 0.3s ease-in-out; /* Width animation */
+        }
+
+        #block {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            margin-left: 10px; /* Space between bar and block */
+        }
+        #text {
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 25px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Updated: added container for horizontal layout -->
+    <div id="widget-container">
+        <img id="pickaxe" src="pickaxe/wooden.png" alt="Pickaxe">
+        <div id="bar-container">
+            <div id="bar-fill" style="width: 0%;"></div>
+        </div>
+        <img id="block" src="pickaxe/stone_block.png" alt="Stone Block">
+    </div>
+
+    <div id="text">0 / 10.000.000</div>
+
+    <script>
+        const pickaxe = document.getElementById("pickaxe");
+        const barFill = document.getElementById("bar-fill");
+        const text = document.getElementById("text");
+
+        const thresholds = [
+            [5000, "netherite"],
+            [2500, "diamond"],
+            [1500, "golden"],
+            [500, "iron"],
+            [100, "stone"],
+            [0, "wooden"]
+        ];
+
+        async function readFile(path) {
+            try {
+                const response = await fetch(path + "?v=" + Date.now());
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                return (await response.text()).trim();
+            } catch {
+                return null;
+            }
+        }
+
+        async function updateWidget() {
+            const [followerText, blockText] = await Promise.all([
+                readFile("../follower_count.txt"), // Updated file name for consistency
+                readFile("../blocks_count.txt")
+            ]);
+
+            const followers = parseInt(followerText) || 0;
+            const blocks = parseInt(blockText) || 0;
+            const percent = Math.min(100, (blocks / 10000000) * 100);
+
+            const pick = thresholds.find(t => followers >= t[0])[1];
+            pickaxe.src = `pickaxe/${pick}.png`;
+
+            // Updated: use width instead of height
+            barFill.style.width = percent + "%";
+            text.textContent = `${blocks.toLocaleString()} / 10.000.000`;
+        }
+
+        setInterval(updateWidget, 2000);
+        updateWidget();
+    </script>
+</body>
+</html>

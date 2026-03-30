@@ -1,0 +1,8 @@
+mcrcon
+filelock
+flask
+kickpython
+kickapi
+google-api-python-client
+google-auth-oauthlib
+pyautogui

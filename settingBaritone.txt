@@ -1,0 +1,32 @@
+#settings allowPlace true
+#settings autoTool true
+#settings allowInventory true
+#settings allowSprint true
+#settings walkWhileBreaking true
+#settings pauseMiningForFallingBlocks true
+
+#settings allowBreak true
+#settings allowPlace false
+#settings layerOrder ascending
+#settings preferStraight true
+#settings mineScanDroppedItems false
+
+G: Gamma
+H: NightVision
+
+# Set difficulty
+/difficulty peaceful
+/difficulty easy
+/difficulty normal
+/difficulty hard
+
+# Create objective to track broken blocks (run once)
+/scoreboard objectives add broken minecraft.mined:minecraft.stone
+
+# Show block count on screen
+/scoreboard objectives setdisplay sidebar broken
+
+# Add the bot/player to the world (if using player EdoBaz)
+/tp EdoBaz 0 100 0
+
+

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blocks Progress</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background-color: transparent;
+      color: #ffffff;
+      font-size: 28px;
+      text-shadow: 2px 2px #000000;
+    }
+
+    #progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="progress">🧱 0 / 1,000,000 (0.00%)</div>
+
+  <script>
+    const progress = document.getElementById("progress");
+    const GOAL = 1000000;
+
+    async function updateProgress() {
+      try {
+        const response = await fetch("blocks_count.txt?rand=" + Math.random());
+        const raw = await response.text();
+        const count = parseInt(raw) || 0;
+        const perc = ((count / GOAL) * 100).toFixed(2);
+        progress.textContent = `🧱 ${count.toLocaleString()} / 1,000,000 (${perc}%)`;
+      } catch (e) {
+        progress.textContent = "🧱 ??? / 1,000,000";
+      }
+    }
+
+    setInterval(updateProgress, 2000);
+    updateProgress();
+  </script>
+</body>
+</html>

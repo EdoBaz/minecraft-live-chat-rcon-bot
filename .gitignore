@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Secrets and auth artifacts
+secret.txt
+**/kick_tokens.db
+**/yt_token.pickle
+**/oauth2_client.json
+
+# Runtime-generated queue/log/state files
+kick-chat/*.txt
+kick-chat/*.jsonl
+kick-chat/*.log
+yt-chat/*.txt
+yt-chat/*.jsonl
+yt-chat/*.log
+
+# Lock files created during runtime
+*.lock
+
+# Local Minecraft server and mods (too heavy for source control)
+server/
+server1.21/
+mod1.20.1/
+mod1.21/
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local media not required by source code
+/brainroot.mp3
+/chillMusic.mp3
+/ChatGPT Image 10 ago 2025, 15_09_31-min.png
+/ChatGPT Image 10 ago 2025, 15_09_31.png
+
+# Legacy overlay assets not used by current HTML files
+**/overlay/pickaxe/Drill.png
+**/overlay/pickaxe/controller.png
+**/overlay/pickaxe/controller2.png
+**/overlay/pickaxe/Crafting_Table.png
+**/overlay/pickaxe/Diamond_Pickaxe.png
+**/overlay/pickaxe/images.jpg

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TNT Countdown (simple)</title>
+<style>
+  :root{
+    --bg: rgba(0,0,0,0.5);
+    --card: rgba(20,20,20,0.85);
+    --accent: #ffb400;
+    --boom: #ff4b4b;
+    --text: #efefef;
+  }
+  html,body{height:100%;margin:0;background:transparent;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;}
+  .container{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    pointer-events:none;
+  }
+  .box{
+    width:440px; max-width:96vw; height:110px; background:var(--card);
+    border-radius:12px; display:flex; gap:12px; align-items:center; padding:10px 14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45); color:var(--text);
+  }
+  .icon{
+    width:84px; height:84px; flex:0 0 84px; display:flex; align-items:center; justify-content:center;
+  }
+  .icon img{ width:72px; height:72px; object-fit:contain; display:block; }
+
+  .info{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:6px;}
+  .label{ font-size:13px; color:#cfcfcf; }
+  .big{ font-size:28px; font-weight:700; color:var(--accent); }
+  .sub{ font-size:13px; color:#d2d2d2; }
+
+  .progress{
+    height:8px; width:100%; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; margin-top:8px;
+  }
+  .bar{
+    height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#ff8a00);
+    transition: width 300ms linear;
+  }
+
+  /* BOOM badge (small, fades) */
+  .boom{
+    position:absolute; right:18px; top:10px; background:var(--boom); color:#fff; padding:6px 10px;
+    border-radius:10px; font-weight:700; font-size:14px; opacity:0; transform:scale(0.95);
+    transition: opacity 200ms ease, transform 220ms ease;
+    pointer-events:none;
+  }
+  .boom.show{ opacity:1; transform:scale(1); }
+
+  /* minimal responsive */
+  @media (max-width:480px){
+    .box{ width:92vw; height:96px; padding:8px; gap:8px; }
+    .icon{ width:68px; height:68px; }
+    .big{ font-size:22px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="box" id="box">
+      <div class="icon"><img src="pickaxe/tnt.png" alt="TNT"></div>
+      <div class="info">
+        <div class="label" id="label">SYSTEM: TNT Rain</div>
+        <div class="big" id="big">Waiting…</div>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+      </div>
+      <div class="boom" id="boom">BOOM!</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const FILE = '../tnt_countdown.txt'; // file path fornito
+  const POLL_MS = 500;
+  const bar = document.getElementById('bar');
+  const big = document.getElementById('big');
+  const label = document.getElementById('label');
+  const boom = document.getElementById('boom');
+
+  let lastRaw = '';
+  let baseline = null; // baseline for progress
+  let lastSeconds = null;
+
+  function parse(raw){
+    if(!raw) return {type:'empty'};
+    raw = raw.trim();
+    if(/BOOM|💥/i.test(raw)) return {type:'boom'};
+    const m = raw.match(/(\d+)\s*s/);
+    if(m) return {type:'count', seconds: parseInt(m[1],10)};
+    const m2 = raw.match(/(\d+)/);
+    if(m2) return {type:'count', seconds: parseInt(m2[1],10)};
+    return {type:'text', text: raw};
+  }
+
+  function update(state){
+    if(state.type === 'empty'){
+      big.textContent = 'Waiting...';
+      bar.style.width = '0%';
+      hideBoom();
+      baseline = null;
+      return;
+    }
+    if(state.type === 'text'){
+      big.textContent = state.text;
+      bar.style.width = '0%';
+      hideBoom();
+      return;
+    }
+    if(state.type === 'count'){
+      const s = state.seconds;
+      big.textContent = s + 's';
+      if(baseline === null || s > baseline) baseline = s;
+      const pct = baseline ? Math.max(0, Math.min(1, (baseline - s) / baseline)) : 0;
+      bar.style.width = (pct * 100) + '%';
+      hideBoom();
+      lastSeconds = s;
+      return;
+    }
+    if(state.type === 'boom'){
+      big.textContent = 'BOOM!';
+      bar.style.width = '100%';
+      showBoom();
+      // clear baseline so next sequence resets
+      baseline = null;
+      lastSeconds = null;
+      return;
+    }
+  }
+
+  function showBoom(){
+    boom.classList.add('show');
+    setTimeout(()=> boom.classList.remove('show'), 800);
+  }
+  function hideBoom(){ boom.classList.remove('show'); }
+
+  async function fetchTXT(){
+    try{
+      // try fetch (works in OBS Browser source when allowed)
+      const resp = await fetch(FILE + '?_=' + Date.now(), {cache:'no-store'});
+      if(resp.ok){
+        const txt = await resp.text();
+        if(txt !== lastRaw){
+          lastRaw = txt;
+          update(parse(txt));
+        }
+        return;
+      }
+    }catch(e){
+      // ignore
+    }
+    // fallback to XHR for local file compatibility
+    try{
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', FILE + '?_=' + Date.now(), true);
+      xhr.onreadystatechange = function(){
+        if(xhr.readyState === 4){
+          const txt = xhr.status === 200 ? xhr.responseText : '';
+          if(txt !== lastRaw){
+            lastRaw = txt;
+            update(parse(txt));
+          }
+        }
+      };
+      xhr.send();
+    }catch(e){
+      // give up
+    }
+  }
+
+  setInterval(fetchTXT, POLL_MS);
+  fetchTXT();
+
+  // debug keys (works only when opened in browser)
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === '5') update({type:'count', seconds:5});
+    if(e.key === '3') update({type:'count', seconds:3});
+    if(e.key === 'b') update({type:'boom'});
+    if(e.key === '0') update({type:'empty'});
+  });
+})();
+</script>
+</body>
+</html>

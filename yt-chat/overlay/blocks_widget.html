@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blocks Broken</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background-color: transparent;
+      color: #ffffff;
+      font-size: 28px;
+      text-shadow: 2px 2px #000000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #icon {
+      width: 32px;
+      height: 32px;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <img id="icon" src="pickaxe.png" alt="Pickaxe Icon">
+  <div id="counter">🪓 Blocks broken: 0</div>
+
+  <script>
+    const counter = document.getElementById("counter");
+
+    async function fetchCount() {
+      try {
+        const response = await fetch("blocks_count.txt?rand=" + Math.random());
+        const text = await response.text();
+        counter.textContent = `🪓 Blocks broken: ${parseInt(text) || 0}`;
+      } catch (e) {
+        counter.textContent = "🪓 Blocks broken: ???";
+      }
+    }
+
+    setInterval(fetchCount, 2000); // update every 2 seconds
+    fetchCount();
+  </script>
+</body>
+</html>

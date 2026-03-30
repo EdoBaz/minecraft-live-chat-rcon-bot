@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live Dashboard</title>
+<style>
+  /* Reset & transparency */
+  body { margin: 0; padding: 0; background: transparent; font-family: 'Segoe UI', sans-serif; color: #fff; }
+  .container { 
+    position: absolute; top: 20px; left: 20px; 
+    width: 380px; 
+    display: grid; grid-template-rows: auto auto auto; gap: 16px;
+  }
+
+  /* BLOCKS SECTION */
+  .block-counter {
+    background: rgba(0,0,0,0.6); border-radius: 8px; padding: 12px;
+  }
+  .block-counter h2 { margin:0; font-size: 18px; text-transform: uppercase; color: #ffa500; }
+  .block-counter .value { font-size: 32px; font-weight: bold; }
+
+  /* PROGRESS SECTION */
+  .percent-bar {
+    background: rgba(0,0,0,0.6); border-radius: 8px; padding: 12px;
+  }
+  .percent-bar h2 { margin:0; font-size: 18px; text-transform: uppercase; color: #7be900; }
+  .progress-container {
+    position: relative; height: 24px; background: #333; border-radius: 12px; overflow: hidden; margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%; width: 0%; background: linear-gradient(90deg, #7be900, #00e0ff); transition: width 0.5s ease;
+  }
+  .progress-text {
+    position: absolute; top:0; left:0; width:100%; text-align:center; line-height:24px; font-size:14px;
+  }
+
+  /* FOLLOWERS SECTION */
+  .follow-goal {
+    background: rgba(0,0,0,0.6); border-radius: 8px; padding: 12px;
+  }
+  .follow-goal h2 { margin:0; font-size: 18px; text-transform: uppercase; color: #ff5f6d; }
+  .goal-bar { position: relative; height: 24px; background: #333; border-radius: 12px; overflow: hidden; margin-top: 8px; }
+  .goal-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff5f6d, #ffc371); transition: width 0.5s ease; }
+  .goal-text { position: absolute; top:0; left:0; width:100%; text-align:center; line-height:24px; font-size:14px; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <!-- Broken blocks -->
+    <div class="block-counter">
+      <h2>Blocks broken</h2>
+      <div class="value" id="blocks">0</div>
+    </div>
+
+    <!-- Completion percentage -->
+    <div class="percent-bar">
+      <h2>Completion</h2>
+      <div class="progress-container">
+        <div class="progress-fill" id="percent-fill"></div>
+        <div class="progress-text" id="percent-text">0&nbsp;%</div>
+      </div>
+    </div>
+
+    <!-- Follow Goal -->
+    <div class="follow-goal">
+      <h2>Followers</h2>
+      <div class="progress-container goal-bar">
+        <div class="goal-fill" id="goal-fill"></div>
+        <div class="goal-text" id="goal-text">0 / 1000 (0.00&nbsp;%)</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const TARGET_BLOCKS = 1000000;
+  const TARGET_FOLLOWS = 1000;  // change follower goal here
+
+  async function readFile(path) {
+    const res = await fetch(path + '?_=' + Date.now());
+    return res.ok ? res.text() : '';
+  }
+
+  async function update() {
+    // Broken blocks
+    const blocksTxt = await readFile('blocks_count.txt');
+    const blocks = parseInt(blocksTxt.replace(/,/g,'')) || 0;
+    document.getElementById('blocks').innerText = blocks.toLocaleString();
+
+    // Percentage
+    const pct = Math.min(100, blocks / TARGET_BLOCKS * 100);
+    document.getElementById('percent-fill').style.width = pct + '%';
+    document.getElementById('percent-text').innerText = pct.toFixed(2) + ' %';
+
+    // Followers
+    const followsTxt = await readFile('follower_count.txt');
+    const follows = parseInt(followsTxt) || 0;
+    const pctF = Math.min(100, follows / TARGET_FOLLOWS * 100);
+    document.getElementById('goal-fill').style.width = pctF + '%';
+    document.getElementById('goal-text').innerText = 
+      `${follows.toLocaleString()} / ${TARGET_FOLLOWS.toLocaleString()} (${pctF.toFixed(2)} %)`;
+  }
+
+  setInterval(update, 1000);
+  update();
+</script>
+</body>
+</html>
