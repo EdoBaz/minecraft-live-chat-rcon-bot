@@ -1,4 +1,4 @@
-# ProgettoBOT
+# Digging Bot LIVE Project
 
 Live chat interaction system -> Minecraft.
 
@@ -230,16 +230,6 @@ This repository is prepared for publication:
 - Token/credential artifacts excluded by `.gitignore`
 - Local server and heavy folders excluded from Git
 
-## Cleanup Notes
-
-Removed only duplicates/artifacts not needed for source control:
-
-- Duplicate Kick folder copy (`kick-chat` duplicate)
-- Duplicate YouTube bot file copy (`yt_chat_bot.py` duplicate)
-- `kick-chat/mc_control.py` (legacy, unused)
-- runtime-generated files (`*.txt`, `*.jsonl`, `*.log`) in bot folders
-- local secrets (`secret.txt`, token DB/Pickle, real OAuth files)
-- non-essential test script (`yt-chat/prova.py`)
 
 ## Useful Notes
 
