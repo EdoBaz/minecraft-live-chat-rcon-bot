@@ -1,114 +1,153 @@
-# Digging Bot LIVE Project
+<div align="center">
 
-Live chat interaction system -> Minecraft.
+# Minecraft Live Chat RCON Bot
 
-This project connects chat commands (Kick or YouTube/StreamElements) to a local Minecraft server through RCON, updates local state files, and powers HTML overlays for OBS.
+**Live chat integration for Minecraft servers via RCON protocol**
 
-## What It Does
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%20%7C%201.21-62B47A?style=for-the-badge&logo=minecraft&logoColor=white)](https://minecraft.net)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-- Receives chat commands (`!boost`, `!slow`, `!speed`, `!water`, `!milk`, `!fatigue`, `!tnt`).
-- Queues commands into local files atomically (with file locks).
-- Consumes the queue and sends Minecraft commands via RCON.
-- Handles pickaxe and efficiency upgrades based on follower/subscriber count.
-- Updates block progress files for OBS overlays.
-- In YouTube mode, also supports the `!!tnt_rain` system trigger with countdown.
+Connect Kick or YouTube live chat to your Minecraft server. Viewers can control gameplay through chat commands while the bot manages pickaxe upgrades based on follower count and updates OBS overlays in real-time.
 
-## Supported Modes
+</div>
 
-- Kick mode: `start_all.bat`
-- YouTube mode: `start_youtube.bat`
+---
 
-## Chat Commands (Kick and YouTube)
+## Features
 
-Supported viewer commands:
+- **Chat Commands** - Processes viewer commands (`!boost`, `!slow`, `!speed`, `!water`, `!milk`, `!fatigue`, `!tnt`)
+- **RCON Integration** - Sends commands to Minecraft server via RCON protocol
+- **Atomic Queue System** - Thread-safe command queuing with file locks
+- **Auto Upgrades** - Automatic pickaxe and efficiency upgrades based on follower/subscriber count
+- **OBS Overlays** - Real-time overlay updates for streaming (block progress, pickaxe tier, countdown)
+- **TNT Rain** - System command for scheduled TNT events with countdown timer (YouTube mode)
 
-- `!boost`
-- `!slow`
-- `!speed`
-- `!water`
-- `!milk`
-- `!fatigue`
-- `!tnt`
+---
 
-Operational notes:
+## Demo
 
-- In Kick mode, commands come from the channel configured in `KICK_CHANNEL_SLUG`.
-- In Kick mode, only the first word of the message is parsed (example: `!tnt now` is treated as `!tnt`).
-- In YouTube mode, commands are received through a StreamElements webhook on `GET /command?name=...` (port set by `SE_WEBHOOK_PORT`).
-- The special command `!!tnt_rain` is reserved for system/admin scripts, not standard viewers.
+Command examples:
+
+| Command | Effect | Preview |
+|---------|--------|---------|
+| `!boost` | Mining speed boost | ![boost](assets/video/boost.gif) |
+| `!tnt` | Single TNT explosion | ![tnt](assets/video/tnt.gif) |
+| `!!tnt_rain` | TNT rain with countdown | ![tntrain](assets/video/TNTrain.gif) |
+
+---
+
+## Supported Platforms
+
+| Platform | Startup Script | Requirements |
+|----------|---------------|--------------|
+| Kick | `start_all.bat` | OAuth credentials |
+| YouTube | `start_youtube.bat` | StreamElements webhook + OAuth (optional) |
+
+---
+
+## Chat Commands
+
+### Viewer Commands
+
+| Command | Effect |
+|---------|--------|
+| `!boost` | Boost effect |
+| `!slow` | Slow effect |
+| `!speed` | Speed effect |
+| `!water` | Water effect |
+| `!milk` | Milk effect |
+| `!fatigue` | Fatigue effect |
+| `!tnt` | TNT explosion |
+
+### Operational Notes
+
+> **Kick Mode**
+> - Commands come from the channel configured in `KICK_CHANNEL_SLUG`
+> - Only the first word of the message is parsed (e.g., `!tnt now` → `!tnt`)
+
+> **YouTube Mode**
+> - Commands received through StreamElements webhook: `GET /command?name=...`
+> - Port configured via `SE_WEBHOOK_PORT`
+> - `!!tnt_rain` is reserved for system/admin scripts only
+
+---
 
 ## Requirements
 
-- Windows + PowerShell/CMD
-- Python 3.11+
-- Java 17+
-- Local Minecraft server with RCON enabled
+| Component | Version |
+|-----------|---------|
+| Windows | 10/11 with PowerShell |
+| Python | 3.11+ |
+| Java | 17+ |
+| Minecraft Server | 1.20.1 or 1.21 with RCON enabled |
 
-## Tested Versions
+**Note:** Startup scripts reference `server/server.jar`. For different Minecraft versions, ensure the server jar is located at this path.
 
-- Minecraft server: 1.20.1 and 1.21
-- Java: 17+
-- Python: 3.11+
-- OS tested: Windows
-
-Important note:
-
-- Startup scripts always use `server/server.jar`.
-- If you use 1.21 (or another version), place that server jar at `server/server.jar`.
+---
 
 ## Installation
 
-1. Create a Python virtual environment (recommended):
+### 1. Create Virtual Environment
 
 ```bat
 python -m venv .venv
 ```
 
-Virtual environment activation:
+**Activation:**
+| Shell | Command |
+|-------|---------|
+| CMD | `.venv\Scripts\activate.bat` |
+| PowerShell | `.\.venv\Scripts\Activate.ps1` |
 
-- CMD: `.venv\Scripts\activate.bat`
-- PowerShell: `.\.venv\Scripts\Activate.ps1`
-
-2. Install dependencies:
+### 2. Install Dependencies
 
 ```bat
 pip install -r requirements.txt
 ```
 
-3. Create the environment file:
+### 3. Configure Environment
 
 ```bat
 copy .env.example .env
 ```
 
-4. Fill `.env` with your real values (at minimum):
+### 4. Fill `.env` with Required Values
 
-- `RCON_PASSWORD`
-- `PLAYER`
-- `KICK_CLIENT_ID`
-- `KICK_CLIENT_SECRET`
-- `KICK_CHANNEL_SLUG`
-- `YT_CHANNEL_ID` (if using YouTube mode)
+| Variable | Required For |
+|----------|--------------|
+| `RCON_PASSWORD` | All modes |
+| `PLAYER` | All modes |
+| `KICK_CLIENT_ID` | Kick mode |
+| `KICK_CLIENT_SECRET` | Kick mode |
+| `KICK_CHANNEL_SLUG` | Kick mode |
+| `YT_CHANNEL_ID` | YouTube mode |
 
-5. YouTube OAuth (YouTube mode only):
+### 5. YouTube OAuth (YouTube mode only)
 
-- Copy `yt-chat/oauth2_client.example.json` to `yt-chat/oauth2_client.json`
-- Insert real Google OAuth `client_id` and `client_secret`
-- On first run, `yt-chat/yt_token.pickle` will be created locally
+```bat
+copy yt-chat\oauth2_client.example.json yt-chat\oauth2_client.json
+```
 
-## Local Minecraft Server Setup
+Insert real Google OAuth `client_id` and `client_secret`. On first run, `yt-chat/yt_token.pickle` will be created locally.
 
-Server/mod folders are excluded from version control (`.gitignore`) to keep the repository lightweight.
+---
 
-Quick setup from scratch:
+## Minecraft Server Setup
 
-1. Create a `server/` folder in the project root.
-2. Put `server.jar` inside `server/`.
-3. Run the server once to generate base files.
-4. Set `eula=true` in `server/eula.txt`.
-5. Configure RCON in `server/server.properties`.
+Server and mod folders are excluded from version control to keep the repository lightweight.
 
-Minimum recommended `server/server.properties` config:
+### Server Configuration
+
+1. Create `server/` folder in project root
+2. Place Minecraft `server.jar` inside `server/`
+3. Run server once to generate configuration files
+4. Accept EULA by setting `eula=true` in `server/eula.txt`
+5. Configure RCON in `server/server.properties`
+
+### RCON Configuration
+
+Add these lines to `server/server.properties`:
 
 ```properties
 enable-rcon=true
@@ -116,123 +155,135 @@ rcon.port=25575
 rcon.password=YOUR_STRONG_PASSWORD
 ```
 
-Make sure `RCON_PASSWORD` in `.env` matches `rcon.password`.
+**Important:** Ensure `RCON_PASSWORD` in `.env` matches `rcon.password` in server properties.
 
-## Client Mods (for Continuous Mining)
+---
 
-Chat and RCON integration does not require mandatory server mods.
+## Client Mods
 
-To keep mining continuously on the player client, use a Fabric client with mods such as:
+Server integration does not require server-side mods. For continuous mining on the player client, use Fabric with:
 
-- Baritone standalone
-- Fabric API
-- Cloth Config
-- Gamma Utils
-- Optional: ModMenu, StreamerCraft, EffectMC
+| Mod | Required |
+|-----|----------|
+| Baritone standalone | Yes |
+| Fabric API | Yes |
+| Cloth Config | Yes |
+| Gamma Utils | Yes |
+| ModMenu | No |
+| StreamerCraft | No |
+| EffectMC | No |
 
-Local folders `mod1.20.1/` and `mod1.21/` are examples of your environment and are not meant to be pushed to Git.
+Mod folders (`mod1.20.1/`, `mod1.21/`) are excluded from Git. See `settingBaritone.txt` for Baritone configuration reference.
 
-Use `settingBaritone.txt` as a quick reference for Baritone settings/commands.
+---
 
-## Kick Configuration
-
-Minimum required `.env` variables:
-
-- `KICK_CHANNEL_SLUG`
-- `KICK_CLIENT_ID`
-- `KICK_CLIENT_SECRET`
-
-Important behavior:
-
-- Kick bot accepts only whitelisted commands.
-- `!eff` is not a viewer command. It is generated only by follower logic.
-
-## YouTube / StreamElements Configuration
-
-Minimum required `.env` variables:
-
-- `YT_CHANNEL_ID`
-- `SE_WEBHOOK_HOST`
-- `SE_WEBHOOK_PORT`
-
-YouTube OAuth:
-
-1. Copy `yt-chat/oauth2_client.example.json` to `yt-chat/oauth2_client.json`.
-2. Add real OAuth credentials in the copied file.
-3. Complete browser consent on first startup.
-
-StreamElements webhook:
-
-- Bot endpoint: `GET /command?name=<command>` on `SE_WEBHOOK_PORT`.
-- If bot runs locally and StreamElements is remote, expose the port with port forwarding or a tunnel (for example ngrok/cloudflared).
-- If you only want webhook commands (without subscriber polling), set `YOUTUBE_API_NEEDED=false` in `.env`.
-
-## Start
-
-Checklist before startup:
-
-- `server/server.jar` exists
-- `.env` is filled (`RCON_PASSWORD`, `PLAYER`, required Kick/YouTube values)
-- `server/server.properties` has RCON enabled
-- `broken` scoreboard objective has been created in game
-- (YouTube) `yt-chat/oauth2_client.json` exists if `YOUTUBE_API_NEEDED=true`
+## Platform Configuration
 
 ### Kick
+
+Required environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `KICK_CHANNEL_SLUG` | Channel slug |
+| `KICK_CLIENT_ID` | OAuth client ID |
+| `KICK_CLIENT_SECRET` | OAuth client secret |
+
+**Note:** The `!eff` command is generated automatically by follower logic and is not a viewer command.
+
+### YouTube / StreamElements
+
+Required environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `YT_CHANNEL_ID` | YouTube channel ID |
+| `SE_WEBHOOK_HOST` | Webhook host address |
+| `SE_WEBHOOK_PORT` | Webhook port (default: 8080) |
+
+**OAuth Setup:**
+1. Copy `yt-chat/oauth2_client.example.json` to `yt-chat/oauth2_client.json`
+2. Insert OAuth credentials from Google Cloud Console
+3. Complete browser authentication on first run
+
+**StreamElements Integration:**
+- Webhook endpoint: `GET /command?name=<command>`
+- For remote access, expose port using port forwarding or tunneling (ngrok/cloudflared)
+- Set `YOUTUBE_API_NEEDED=false` to disable subscriber polling and use webhook-only mode
+
+---
+
+## Usage
+
+### Pre-startup Checklist
+
+- `server/server.jar` exists
+- `.env` configured with `RCON_PASSWORD`, `PLAYER`, and platform credentials
+- RCON enabled in `server/server.properties`
+- Scoreboard objective `broken` created in-game
+- (YouTube only) `oauth2_client.json` configured if using API polling
+
+### Kick Mode
 
 ```bat
 start_all.bat
 ```
 
-This starts:
+Starts four processes:
+- Minecraft server
+- Kick chat listener
+- RCON command processor
+- Block progress monitor
 
-- local Minecraft server (`server/server.jar`)
-- Kick bot (`kick-chat/script.py`)
-- Kick RCON controller (`kick-chat/mc_rcon_control.py`)
-- block progress monitor (`kick-chat/block_progress.py`)
-
-### YouTube
+### YouTube Mode
 
 ```bat
 start_youtube.bat
 ```
 
-This starts:
+Starts four processes:
+- Minecraft server
+- YouTube webhook server
+- RCON command processor
+- Block progress monitor
 
-- local Minecraft server (`server/server.jar`)
-- YouTube/webhook bot (`yt-chat/yt_chat_bot.py`)
-- YouTube RCON controller (`yt-chat/mc_rcon_control.py`)
-- block progress monitor (`yt-chat/block_progress.py`)
+---
 
-## First In-Game Setup (block scoreboard)
+## In-Game Setup
 
-Run these once in Minecraft:
+Create the block mining scoreboard with these commands:
 
 ```mcfunction
 /scoreboard objectives add broken minecraft.mined:minecraft.stone
 /scoreboard objectives setdisplay sidebar broken
 ```
 
+---
+
 ## OBS Overlays
 
-Use files under:
+Overlay HTML files are located in:
 
-- `kick-chat/overlay/`
-- `yt-chat/overlay/`
+| Platform | Path |
+|----------|------|
+| Kick | `kick-chat/overlay/` |
+| YouTube | `yt-chat/overlay/` |
 
-Overlays read state files generated automatically by the scripts.
+Overlays automatically read state files generated by the bot processes.
 
-## Security
-
-This repository is prepared for publication:
-
-- Secrets/tokens removed from source files
-- Sensitive config read from environment variables (`.env`)
-- Token/credential artifacts excluded by `.gitignore`
-- Local server and heavy folders excluded from Git
+---
 
 
-## Useful Notes
+## Notes
 
-- If `server/server.jar` is missing, startup scripts show an explicit error.
-- If a required `.env` variable is missing, scripts stop with a clear error.
-- If Python modules are missing, rerun `pip install -r requirements.txt` in the active environment.
+- Missing `server/server.jar` will trigger startup error
+- Missing required environment variables will halt execution with error message
+- Missing Python dependencies can be reinstalled with `pip install -r requirements.txt`
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+---
